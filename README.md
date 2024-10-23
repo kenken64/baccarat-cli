@@ -113,6 +113,8 @@ Use JavaScript to read the CSV file and generate an HTML table dynamically.
 Place index.html, script.js, and game_history.csv in the same directory.
 Publish the website to Vercel.
 
+<img src="sample.png" width="400" height="400">
+
 ### (25 Marks)
 
 Solution Approach
