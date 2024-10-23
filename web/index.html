@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Baccarat Bead Plate from File</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 text-gray-800 flex flex-col items-center p-5">
+    <h1 class="text-3xl font-bold mb-5">Baccarat Bead Plate from File</h1>
+    <input type="file" id="fileInput" accept=".csv" class="mb-5">
+    <div class="grid grid-cols-6 gap-2" id="beadPlate"></div>
+
+    <script>
+        document.getElementById('fileInput').addEventListener('change', function(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+
+            reader.onload = function(e) {
+                const csvContent = e.target.result;
+
+                // Step 2: Parse the CSV string
+                const rows = csvContent.trim().split('\n');
+                const beadData = rows.map(row => row.split(',').map(item => item.trim()));
+
+                // Step 3: Transpose the beadData to invert rows into columns
+                const transposedBeadData = beadData[0].map((_, colIndex) => beadData.map(row => row[colIndex]));
+
+                // Step 4: Access the beadPlate div
+                const beadPlate = document.getElementById('beadPlate');
+                beadPlate.innerHTML = ""; // Clear previous content
+
+                
+
+                // Step 6: Render the bead plate based on the transposed data
+                for (let rowIndex = 0; rowIndex < transposedBeadData[0].length; rowIndex++) {
+                    for (let colIndex = 0; colIndex < transposedBeadData.length; colIndex++) {
+                        const result = transposedBeadData[colIndex][rowIndex];
+                        const bead = document.createElement('div');
+                        bead.classList.add('w-12', 'h-12', 'flex', 'items-center', 'justify-center', 'font-bold', 'rounded-full', 'text-white');
+
+                        switch (result) {
+                            case 'P':
+                                bead.classList.add('bg-blue-500');
+                                bead.textContent = 'P';
+                                break;
+                            case 'B':
+                                bead.classList.add('bg-red-500');
+                                bead.textContent = 'B';
+                                break;
+                            case 'D':
+                                bead.classList.add('bg-green-500');
+                                bead.textContent = 'D';
+                                break;
+                        }
+
+                        beadPlate.appendChild(bead);
+                    }
+                }
+            };
+
+            reader.readAsText(file);
+        });
+    </script>
+</body>
+</html>
