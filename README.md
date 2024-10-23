@@ -8,9 +8,10 @@ make run-server
 make run-client
 ```
 
-Workshop: Developing a Client-Server Application for a Baccarat Game
+## Workshop: Developing a Client-Server Application for a Baccarat Game
 
-Task 01
+## Task 01 
+
 Set up the project structure:
 
 Create src and classes directories for your application.
@@ -39,12 +40,13 @@ Example:
 10.3
 11.4
 ```
-(25 Marks)
+### (25 Marks)
 
-Task 02
+## Task 02 
+
 Develop a client program to connect with the server:
 
-sh
+
 ```
 java -cp classes sg.edu.nus.iss.baccarat.client.ClientApp localhost:12345
 ```
@@ -78,9 +80,9 @@ Handle betting, payouts, and specific Baccarat rules, such as the "6-Card Rule" 
 
 Handle insufficient balance scenarios by notifying the client.
 
-(35 Marks)
+### (35 Marks)
 
-Task 03
+## Task 03
 Create a CSV file (game_history.csv) to keep track of winning games.
 
 Each row should record up to 6 games, allowing multiple rows.
@@ -93,20 +95,20 @@ B,B,D,P,B,B
 ```
 Handle tie games and record the results accurately.
 
-(15 Marks)
+### (15 Marks)
 
-Task 04
+## Task 04 (Optional)
 Write at least two test cases for BaccaratEngine.java to verify different game outcomes such as player wins, banker wins, and tie games.
-(5 Marks)
+### (5 Marks)
 
-Task 05
+## Task 05
 Create an HTML table that reads from game_history.csv and displays the game outcomes:
 
 Use JavaScript to read the CSV file and generate an HTML table dynamically.
 Place index.html, script.js, and game_history.csv in the same directory.
 Publish the website to Vercel.
 
-(25 Marks)
+### (25 Marks)
 
 Solution Approach
 
