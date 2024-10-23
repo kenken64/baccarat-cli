@@ -8,6 +8,11 @@ make run-server
 make run-client
 ```
 
+```
+cd web
+vercel
+```
+
 ## Workshop: Developing a Client-Server Application for a Baccarat Game
 
 ## Task 01 
