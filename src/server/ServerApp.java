@@ -7,11 +7,12 @@ import java.net.Socket;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Queue;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 public class ServerApp {
-    
     public static void main(String[] args) {
         if (args.length < 2) {
             System.out.println("Usage: java -cp classes sg.edu.nus.iss.baccarat.server.ServerApp <port> <number_of_decks>");
@@ -51,6 +52,9 @@ public class ServerApp {
             System.out.println("Error writing to cards.db: " + e.getMessage());
         }
 
+        // Reset game history on server restart
+        resetGameHistory();
+
         // Start the server with a thread pool
         ExecutorService executorService = Executors.newFixedThreadPool(10);
         try (ServerSocket serverSocket = new ServerSocket(port)) {
@@ -65,13 +69,23 @@ public class ServerApp {
             executorService.shutdown();
         }
     }
+
+    private static void resetGameHistory() {
+        try (FileWriter fileWriter = new FileWriter("game_history.csv", false)) {
+            // Opening the file in overwrite mode without writing anything will empty it
+            fileWriter.write("");
+            System.out.println("Game history has been reset.");
+        } catch (IOException e) {
+            System.out.println("Error resetting game history: " + e.getMessage());
+        }
+    }
+
 }
 
 class BaccaratEngine implements Runnable {
     private Socket clientSocket;
     private List<String> cards;
-    List<String> gameHistory = new ArrayList<>();
-
+    private volatile List<String> gameHistory = new ArrayList<>();
 
     public BaccaratEngine(Socket clientSocket) {
         this.clientSocket = clientSocket;
@@ -85,7 +99,7 @@ class BaccaratEngine implements Runnable {
 
             String inputLine;
             BigInteger betAmount = BigInteger.ZERO;
-            emptyGameHistory();
+            
             while ((inputLine = in.readLine()) != null) {
                 String[] commandParts = inputLine.split("\\|");
                 String command = commandParts[0];
@@ -140,18 +154,13 @@ class BaccaratEngine implements Runnable {
                         out.println("Unknown command: " + command);
                         break;
                 }
-
-                if (gameHistory.size() == 6) {
-                    writeGameHistory(gameHistory);
-                    gameHistory.clear();
-                }
             }
         } catch (IOException e) {
             System.out.println("Error handling client: " + e.getMessage());
         }
     }
 
-    private List<String> loadCards() {
+    private synchronized List<String> loadCards() {
         List<String> cards = new ArrayList<>();
         try (BufferedReader reader = new BufferedReader(new FileReader("cards.db"))) {
             String line;
@@ -165,7 +174,7 @@ class BaccaratEngine implements Runnable {
     }
 
     private String dealCards(String side) {
-
+        
         if (cards.size() < 4) {
             return "Not enough cards to deal.";
         }
@@ -235,14 +244,28 @@ class BaccaratEngine implements Runnable {
             result = "Draw";
         }
 
-        if (result.contains("Banker wins")) {
-            gameHistory.add("B");
-        } if(result.contains("Player wins")) {
-            gameHistory.add("P");
-        }else{
-            gameHistory.add("D");
+        synchronized (gameHistory) {
+            if (result.contains("Banker wins")) {
+                gameHistory.add("B");
+            } if(result.contains("Player wins")) {
+                gameHistory.add("P");
+            }else if(result.contains("Draw")){
+                gameHistory.add("D");
+            }
+
+            // Write to history if game count reaches 6
+            if (gameHistory.size() == 6) {
+                writeGameHistory(new ArrayList<>(gameHistory));
+                gameHistory.clear();
+            }
+            
+            // writeGameHistory(new ArrayList<>(gameHistory));
+            // if(gameHistory.size() == 6)
+            //     gameHistory = new ArrayList<>();
+            System.out.println(">>>> " + gameHistory);
         }
 
+        
         // Save the updated cards list back to "cards.db"
         saveCards();
 
@@ -253,21 +276,15 @@ class BaccaratEngine implements Runnable {
         return playerCardsString + "," + bankerCardsString + " - " + result;
     }
 
-    private static void writeGameHistory(List<String> gameHistory) {
+    private static synchronized void writeGameHistory(List<String> gameHistorySnapshot) {
         try (FileWriter csvWriter = new FileWriter("game_history.csv", true)) {
-            csvWriter.append(String.join(",", gameHistory));
-            csvWriter.append("\n");
+            synchronized (gameHistorySnapshot) {
+                if (!gameHistorySnapshot.isEmpty()) {
+                    csvWriter.append(String.join(",", gameHistorySnapshot)).append("\n");
+                }
+            }
         } catch (IOException e) {
             System.out.println("Error writing game history: " + e.getMessage());
-        }
-    }
-
-    private static void emptyGameHistory(){
-        try (FileWriter fileWriter = new FileWriter("game_history.csv", false)) {
-            // Opening the file in overwrite mode without writing anything will empty it
-            fileWriter.write(""); // Optional, file will still be empty
-        } catch (IOException e) {
-            e.printStackTrace();
         }
     }
 
@@ -276,7 +293,7 @@ class BaccaratEngine implements Runnable {
         return value;
     }
 
-    private void saveCards() {
+    private synchronized void saveCards() {
         // Save the shuffled cards to a data file named "cards.db"
         try (FileWriter writer = new FileWriter("cards.db")) {
             for (String card : cards) {
