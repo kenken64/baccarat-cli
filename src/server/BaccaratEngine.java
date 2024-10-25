@@ -163,14 +163,14 @@ class BaccaratEngine implements Runnable {
                 bankerSum = bankerSum - milestones[1];
             } 
 
-            if(playerSum == 20){
+            if(playerSum == 20 || playerSum == 10){
                 playerSum = 0;
             }
 
-            if(bankerSum == 20){
+            if(bankerSum == 20 || bankerSum == 10){
                 bankerSum= 0;
             }
-            
+
             System.out.println("aft playerSum > " + playerSum);
             System.out.println("aft bankerSum > " + bankerSum);
             
