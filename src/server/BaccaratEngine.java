@@ -51,25 +51,30 @@ class BaccaratEngine implements Runnable {
                         username = commandParts[2];
                         String side = commandParts[1];
                         balance = getBalance(username);
-                        String result = dealCards(side);
-                        System.out.println(result);
-                        if (result.contains("wins")) {
-                            if ((side.equals("B") && result.contains("Banker wins")) 
-                                || (side.equals("P") && result.contains("Player wins"))) {
-                                balance = balance.add(betAmount);
-                                System.out.println(balance);
-                                updateBalance(username, balance);
-                                out.println("Bet won. Balance updated: " + balance);
+                        if(betAmount.compareTo(balance) < 0){
+                            String result = dealCards(side);
+                            System.out.println(result);
+                            if (result.contains("wins")) {
+                                if ((side.equals("B") && result.contains("Banker wins")) 
+                                    || (side.equals("P") && result.contains("Player wins"))) {
+                                    balance = balance.add(betAmount);
+                                    System.out.println(balance);
+                                    updateBalance(username, balance);
+                                    out.println("Bet won. Balance updated: " + balance);
+                                } else {
+                                    balance = balance.subtract(betAmount);
+                                    out.println("Bet lost. Balance remains: " + balance);
+                                    System.out.println(balance);
+                                    updateBalance(username, balance);
+                                }
                             } else {
-                                balance = balance.subtract(betAmount);
-                                out.println("Bet lost. Balance remains: " + balance);
+                                out.println("It's a draw. Bet refunded.");
                                 System.out.println(balance);
-                                updateBalance(username, balance);
                             }
-                        } else {
-                            out.println("It's a draw. Bet refunded.");
-                            System.out.println(balance);
+                        }else{
+                            out.println("Insufficient betting amount");
                         }
+                        
                         break;
                     case "exit":
                         System.exit(1);
@@ -162,15 +167,10 @@ class BaccaratEngine implements Runnable {
                 System.out.println("B more than 20");
                 bankerSum = bankerSum - milestones[1];
             } 
-
-            if(playerSum == 20 || playerSum == 10){
-                playerSum = 0;
-            }
-
-            if(bankerSum == 20 || bankerSum == 10){
-                bankerSum= 0;
-            }
-
+            
+            resetSumIfNecessary(playerSum);
+            resetSumIfNecessary(bankerSum);
+            
             System.out.println("aft playerSum > " + playerSum);
             System.out.println("aft bankerSum > " + bankerSum);
             
@@ -212,6 +212,12 @@ class BaccaratEngine implements Runnable {
         String bankerCardsString = "B|" + String.join("|", bankerCards);
 
         return playerCardsString + "," + bankerCardsString + " - " + result;
+    }
+
+    private void resetSumIfNecessary(int sum) {
+        if (sum == 20 || sum == 10) {
+            sum = 0;
+        }
     }
 
     private static synchronized void writeGameHistory(List<String> gameHistorySnapshot) {
