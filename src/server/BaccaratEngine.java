@@ -106,66 +106,81 @@ class BaccaratEngine implements Runnable {
         int bankerSum = 0;
         List<String> playerCards = new ArrayList<>();
         List<String> bankerCards = new ArrayList<>();
-
-        // Draw initial two cards for Player and Banker
-        for (int i = 0; i < 2; i++) {
-            String playerCard = cards.remove(0);
-            playerCards.add(playerCard);
-            playerSum += getCardValue(playerCard);
-
-            String bankerCard = cards.remove(0);
-            bankerCards.add(bankerCard);
-            bankerSum += getCardValue(bankerCard);
-        }
-
-        // Draw third card if necessary (sum <= 15)
-        if (playerSum <= 15) {
-            String playerCard = cards.remove(0);
-            playerCards.add(playerCard);
-            playerSum += getCardValue(playerCard);
-        }
-
-        if (bankerSum <= 15) {
-            String bankerCard = cards.remove(0);
-            bankerCards.add(bankerCard);
-            bankerSum += getCardValue(bankerCard);
-        }
-
-        // Determine result
         String result;
-        System.out.println("playerSum > " + playerSum);
-        System.out.println("bankerSum > " + bankerSum);
         int[] milestones = {10, 20}; // Array to store milestone values
 
-        if(playerSum >= 10 && playerSum <= 20){
-            System.out.println("P more than 10 and less than 20");
-            playerSum = playerSum - milestones[0];
-        }
+        synchronized(cards){
+            // Draw initial two cards for Player and Banker
+            for (int i = 0; i < 2; i++) {
+                System.out.println("player sum >>>>");
+                String playerCard = cards.remove(0);
+                playerCards.add(playerCard);
+                playerSum += getCardValue(playerCard);
+                System.out.println("player sum >>>>" + playerSum);
+                System.out.println("Bank sum >>>>");
+                String bankerCard = cards.remove(0);
+                bankerCards.add(bankerCard);
+                bankerSum += getCardValue(bankerCard);
+                System.out.println("bankerSum  >>>>" + bankerSum);
+            }
 
-        if(playerSum > 20){
-            System.out.println("P more than 20");
-            playerSum = playerSum - milestones[1];
-        }
+            
+            if (playerSum <= 15) {
+                System.out.println("Player drawing third card");
+                String playerCard = cards.remove(0);
+                playerCards.add(playerCard);
+                playerSum += getCardValue(playerCard);
+            }
+        
+            if (bankerSum <= 15) {
+                System.out.println("Banker drawing third card");
+                String bankerCard = cards.remove(0);
+                bankerCards.add(bankerCard);
+                bankerSum += getCardValue(bankerCard);
+            }
+        
+            // Determine result
+            System.out.println("playerSum > " + playerSum);
+            System.out.println("bankerSum > " + bankerSum);
+            
+            if(playerSum >= 10 && playerSum <= 20){
+                System.out.println("P more than 10 and less than 20");
+                playerSum = playerSum - milestones[0];
+            }
 
-        if(bankerSum  >= 10 && bankerSum  <= 20){
-            System.out.println("B more than 10 and less than 20");
-            bankerSum = bankerSum - milestones[0];
-        }
+            if(playerSum > 20){
+                System.out.println("P more than 20");
+                playerSum = playerSum - milestones[1];
+            }
 
-        if(bankerSum > 20){
-            System.out.println("B more than 20");
-            bankerSum = bankerSum - milestones[1];
-        } 
-        System.out.println("aft playerSum > " + playerSum);
-        System.out.println("aft bankerSum > " + bankerSum);
+            if(bankerSum  >= 10 && bankerSum  <= 20){
+                System.out.println("B more than 10 and less than 20");
+                bankerSum = bankerSum - milestones[0];
+            }
 
-        if (playerSum > bankerSum) {
-            result = "Player wins with " + playerSum + " points.";
-        } else if (bankerSum > playerSum) {
-            result = "Banker wins with " + bankerSum + " points.";
-        } else {
-            result = "Draw";
+            if(bankerSum > 20){
+                System.out.println("B more than 20");
+                bankerSum = bankerSum - milestones[1];
+            } 
+            System.out.println("aft playerSum > " + playerSum);
+            System.out.println("aft bankerSum > " + bankerSum);
+            if(playerSum == 20){
+                playerSum = 0;
+            }
+
+            if(bankerSum == 20){
+                bankerSum= 0;
+            }
+
+            if (playerSum > bankerSum) {
+                result = "Player wins with " + playerSum + " points.";
+            } else if (bankerSum > playerSum) {
+                result = "Banker wins with " + bankerSum + " points.";
+            } else {
+                result = "Draw";
+            }
         }
+        
 
         synchronized (gameHistory) {
             if (result.contains("Banker wins")) {
@@ -208,8 +223,11 @@ class BaccaratEngine implements Runnable {
         }
     }
 
-    private int getCardValue(String card) {
+    private synchronized int getCardValue(String card) {
         int value = Integer.parseInt(card.split("\\.")[0]);
+        if(value == 11 || value == 12 || value ==13)
+            value = 10;
+        System.out.println("###### getCardValue >>>>" + value);
         return value;
     }
 

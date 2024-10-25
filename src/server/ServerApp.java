@@ -18,7 +18,7 @@ public class ServerApp {
 
         int port;
         int numberOfDecks;
-
+        
         try {
             port = Integer.parseInt(args[0]);
             numberOfDecks = Integer.parseInt(args[1]);
@@ -31,6 +31,7 @@ public class ServerApp {
         List<String> cards = new ArrayList<>();
         for (int i = 0; i < numberOfDecks; i++) {
             for (int value = 1; value <= 13; value++) {
+                // 11 - Jack, 12 - Queen , 13 - King
                 for (int suit = 1; suit <= 4; suit++) {
                     cards.add(value + "." + suit);
                 }
