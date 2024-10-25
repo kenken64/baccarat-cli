@@ -162,8 +162,7 @@ class BaccaratEngine implements Runnable {
                 System.out.println("B more than 20");
                 bankerSum = bankerSum - milestones[1];
             } 
-            System.out.println("aft playerSum > " + playerSum);
-            System.out.println("aft bankerSum > " + bankerSum);
+
             if(playerSum == 20){
                 playerSum = 0;
             }
@@ -171,6 +170,10 @@ class BaccaratEngine implements Runnable {
             if(bankerSum == 20){
                 bankerSum= 0;
             }
+            
+            System.out.println("aft playerSum > " + playerSum);
+            System.out.println("aft bankerSum > " + bankerSum);
+            
 
             if (playerSum > bankerSum) {
                 result = "Player wins with " + playerSum + " points.";
