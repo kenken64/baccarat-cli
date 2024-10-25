@@ -37,7 +37,6 @@ class BaccaratEngine implements Runnable {
                         out.println("User " + username + " logged in with balance: " + balance);
                         break;
                     case "bet":
-                        System.out.println(commandParts);
                         username = commandParts[2];
                         betAmount = new BigInteger(commandParts[1]);
                         balance = getBalance(username);
@@ -53,23 +52,19 @@ class BaccaratEngine implements Runnable {
                         balance = getBalance(username);
                         if(betAmount.compareTo(balance) < 0){
                             String result = dealCards(side);
-                            System.out.println(result);
                             if (result.contains("wins")) {
                                 if ((side.equals("B") && result.contains("Banker wins")) 
                                     || (side.equals("P") && result.contains("Player wins"))) {
                                     balance = balance.add(betAmount);
-                                    System.out.println(balance);
                                     updateBalance(username, balance);
                                     out.println("Bet won. Balance updated: " + balance);
                                 } else {
                                     balance = balance.subtract(betAmount);
                                     out.println("Bet lost. Balance remains: " + balance);
-                                    System.out.println(balance);
                                     updateBalance(username, balance);
                                 }
                             } else {
                                 out.println("It's a draw. Bet refunded.");
-                                System.out.println(balance);
                             }
                         }else{
                             out.println("Insufficient betting amount");
@@ -84,7 +79,7 @@ class BaccaratEngine implements Runnable {
                 }
             }
         } catch (IOException e) {
-            System.out.println("Error handling client: " + e.getMessage());
+            System.err.println("Error handling client: " + e.getMessage());
         }
     }
 
@@ -96,7 +91,7 @@ class BaccaratEngine implements Runnable {
                 cards.add(line);
             }
         } catch (IOException e) {
-            System.out.println("Error loading cards: " + e.getMessage());
+            System.err.println("Error loading cards: " + e.getMessage());
         }
         return cards;
     }
@@ -117,64 +112,46 @@ class BaccaratEngine implements Runnable {
         synchronized(cards){
             // Draw initial two cards for Player and Banker
             for (int i = 0; i < 2; i++) {
-                System.out.println("player sum >>>>");
                 String playerCard = cards.remove(0);
                 playerCards.add(playerCard);
                 playerSum += getCardValue(playerCard);
-                System.out.println("player sum >>>>" + playerSum);
-                System.out.println("Bank sum >>>>");
                 String bankerCard = cards.remove(0);
                 bankerCards.add(bankerCard);
                 bankerSum += getCardValue(bankerCard);
-                System.out.println("bankerSum  >>>>" + bankerSum);
             }
 
             
             if (playerSum <= 15) {
-                System.out.println("Player drawing third card");
                 String playerCard = cards.remove(0);
                 playerCards.add(playerCard);
                 playerSum += getCardValue(playerCard);
             }
         
             if (bankerSum <= 15) {
-                System.out.println("Banker drawing third card");
                 String bankerCard = cards.remove(0);
                 bankerCards.add(bankerCard);
                 bankerSum += getCardValue(bankerCard);
             }
         
-            // Determine result
-            System.out.println("playerSum > " + playerSum);
-            System.out.println("bankerSum > " + bankerSum);
-            
             if(playerSum >= 10 && playerSum <= 20){
-                System.out.println("P more than 10 and less than 20");
                 playerSum = playerSum - milestones[0];
             }
 
             if(playerSum > 20){
-                System.out.println("P more than 20");
                 playerSum = playerSum - milestones[1];
             }
 
             if(bankerSum  >= 10 && bankerSum  <= 20){
-                System.out.println("B more than 10 and less than 20");
                 bankerSum = bankerSum - milestones[0];
             }
 
             if(bankerSum > 20){
-                System.out.println("B more than 20");
                 bankerSum = bankerSum - milestones[1];
             } 
             
             resetSumIfNecessary(playerSum);
             resetSumIfNecessary(bankerSum);
             
-            System.out.println("aft playerSum > " + playerSum);
-            System.out.println("aft bankerSum > " + bankerSum);
-            
-
             if (playerSum > bankerSum) {
                 result = "Player wins with " + playerSum + " points.";
             } else if (bankerSum > playerSum) {
@@ -199,8 +176,6 @@ class BaccaratEngine implements Runnable {
                 writeGameHistory(new ArrayList<>(gameHistory));
                 gameHistory.clear();
             }
-            
-            System.out.println(">>>> " + gameHistory);
         }
 
         
@@ -236,7 +211,6 @@ class BaccaratEngine implements Runnable {
         int value = Integer.parseInt(card.split("\\.")[0]);
         if(value == 11 || value == 12 || value ==13)
             value = 10;
-        System.out.println("###### getCardValue >>>>" + value);
         return value;
     }
 
@@ -248,7 +222,7 @@ class BaccaratEngine implements Runnable {
             }
             System.out.println("Shuffled cards saved to cards.db");
         } catch (IOException e) {
-            System.out.println("Error writing to cards.db: " + e.getMessage());
+            System.err.println("Error writing to cards.db: " + e.getMessage());
         }
     }
 
@@ -256,7 +230,7 @@ class BaccaratEngine implements Runnable {
         try (BufferedReader reader = new BufferedReader(new FileReader(username + ".db"))) {
             return new BigInteger(reader.readLine());
         } catch (IOException e) {
-            System.out.println("Error reading balance for user " + username + ": " + e.getMessage());
+            System.err.println("Error reading balance for user " + username + ": " + e.getMessage());
             return BigInteger.ZERO;
         }
     }
@@ -265,7 +239,7 @@ class BaccaratEngine implements Runnable {
         try (FileWriter writer = new FileWriter(username + ".db")) {
             writer.write(String.valueOf(balance));
         } catch (IOException e) {
-            System.out.println("Error updating balance for user " + username + ": " + e.getMessage());
+            System.err.println("Error updating balance for user " + username + ": " + e.getMessage());
         }
     }
 }

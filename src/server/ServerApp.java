@@ -10,9 +10,13 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 public class ServerApp {
+    public static final String RESET = "\u001B[0m";
+    public static final String RED = "\u001B[31m";
+    public static final String GREEN = "\u001B[32m";
+    public static final String YELLOW_BACKGROUND = "\u001B[43m";
     public static void main(String[] args) {
         if (args.length < 2) {
-            System.out.println("Usage: java -cp classes sg.edu.nus.iss.baccarat.server.ServerApp <port> <number_of_decks>");
+            System.out.println(GREEN + "Usage: java -cp classes sg.edu.nus.iss.baccarat.server.ServerApp <port> <number_of_decks>" + RESET);
             return;
         }
 
@@ -23,7 +27,7 @@ public class ServerApp {
             port = Integer.parseInt(args[0]);
             numberOfDecks = Integer.parseInt(args[1]);
         } catch (NumberFormatException e) {
-            System.out.println("Invalid arguments. Port and number of decks must be integers.");
+            System.out.println(RED+ "Invalid arguments. Port and number of decks must be integers."+ RESET);
             return;
         }
 
@@ -47,7 +51,7 @@ public class ServerApp {
             }
             System.out.println("Shuffled cards saved to cards.db");
         } catch (IOException e) {
-            System.out.println("Error writing to cards.db: " + e.getMessage());
+            System.err.println(RED +"Error writing to cards.db: " + e.getMessage()+ RESET);
         }
 
         // Reset game history on server restart
@@ -56,13 +60,13 @@ public class ServerApp {
         // Start the server with a thread pool
         ExecutorService executorService = Executors.newFixedThreadPool(10);
         try (ServerSocket serverSocket = new ServerSocket(port)) {
-            System.out.println("Server started on port " + port + " with " + numberOfDecks + " deck(s) of cards.");
+            System.out.println(GREEN + "Server started on port " + port + " with " + numberOfDecks + " deck(s) of cards." + RESET);
             while (true) {
                 Socket clientSocket = serverSocket.accept();
                 executorService.execute(new BaccaratEngine(clientSocket));
             }
         } catch (IOException e) {
-            System.out.println("Error starting server: " + e.getMessage());
+            System.err.println("Error starting server: " + e.getMessage());
         } finally {
             executorService.shutdown();
         }
@@ -74,7 +78,7 @@ public class ServerApp {
             fileWriter.write("");
             System.out.println("Game history has been reset.");
         } catch (IOException e) {
-            System.out.println("Error resetting game history: " + e.getMessage());
+            System.err.println("Error resetting game history: " + e.getMessage());
         }
     }
 
